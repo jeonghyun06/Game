@@ -118,11 +118,7 @@ class MindSweeper(object):
         col = int((event.x_root - self.window.winfo_x() - 18)/24)
         row = int((event.y_root - self.window.winfo_y() - 108) / 26)
         print(row, col)
-        if(self.btnflag[row][col]):
-            return
-        self.button[row][col].config(relief="flat", state="disabled")
-        self.button[row][col].unbind("<Button-3>")
-        self.btnflag[row][col] = True
+        self.btnopen(row,col)
 
         mine_flag = False
         for i in range(len(self.mine)):
@@ -135,13 +131,61 @@ class MindSweeper(object):
                 self.button[x][y].config(relief="flat", text="*")
             self.game_over()
         else:
-            self.button[row][col].config(text=self.minecnt[row][col])
-            self.cnt+=1
-            if(self.cnt+self.minenum==self.mapwidth*self.mapheight):
-                self.game_win()
+            self.gameWin(row,col)
 
     def spread(self, row, col):
-        pass
+        # 0인 칸을 누르면
+        # 주위 8개의 칸이 open
+        if(self.minecnt[row][col]==0):
+            if row > 0:   # x==0인 상황을 피함
+                if col > 0:
+                    if (self.btnflag[row-1][col-1]==False):
+                        self.btnopen(row-1,col-1)
+                        self.gameWin(row-1,col-1)
+                if (self.btnflag[row-1][col])==False:
+                    self.btnopen(row-1,col)
+                    self.gameWin(row-1, col)
+                if col<self.mapheight-1:
+                    if (self.btnflag[row-1][col+1]==False):
+                        self.btnopen(row-1,col+1)
+                        self.gameWin(row-1, col+1)
+
+            if row < self.mapwidth-1:
+                if col>0:
+                    if (self.btnflag[row+1][col-1]==False):
+                        self.btnopen(row+1,col-1)
+                        self.gameWin(row+1, col-1)
+                if (self.btnflag[row+1][col]==False):
+                    self.btnopen(row+1,col)
+                    self.gameWin(row+1, col)
+                if col<self.mapheight-1:
+                    if (self.btnflag[row+1][col+1]==False):
+                        self.btnopen(row+1,col+1)
+                        self.gameWin(row+1, col+1)
+
+            if col>0:
+                if (self.btnflag[row][col-1]==False):
+                    self.btnopen(row,col-1)
+                    self.gameWin(row, col-1)
+
+            if col<self.mapheight-1:
+                if (self.btnflag[row][col+1]==False):
+                    self.btnopen(row,col+1)
+                    self.gameWin(row, col+1)
+
+    def btnopen(self,row,col):
+        if (self.btnflag[row][col]):
+            return
+        self.button[row][col].config(relief="flat", state="disabled")
+        self.button[row][col].unbind("<Button-3>")
+        self.btnflag[row][col] = True
+
+    def gameWin(self,row,col):
+        self.button[row][col].config(text=self.minecnt[row][col])
+        self.cnt += 1
+        self.spread(row,col)
+        if (self.cnt + self.minenum == self.mapwidth * self.mapheight):
+            self.game_win()
 
     def setlowlevel(self):
         self.window.destroy()
@@ -190,6 +234,7 @@ class MindSweeper(object):
             self.markcnt+=1
             self.button[row][col].config(text="※")
         self.markText.set(str(self.markcnt))
+
 
 if __name__ == "__main__":
     MindSweeper()
